@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
+  <title><![CDATA[Zane Zheng Blog]]></title>
   <link href="http://Zane5.github.com/atom.xml" rel="self"/>
   <link href="http://Zane5.github.com/"/>
-  <updated>2012-10-24T22:11:34+08:00</updated>
+  <updated>2013-04-25T22:39:49+08:00</updated>
   <id>http://Zane5.github.com/</id>
   <author>
     <name><![CDATA[Zane Zheng]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[helloAgain]]></title>
+    <link href="http://Zane5.github.com/blog/2013/04/25/helloagain/"/>
+    <updated>2013-04-25T22:39:00+08:00</updated>
+    <id>http://Zane5.github.com/blog/2013/04/25/helloagain</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Hello World]]></title>
