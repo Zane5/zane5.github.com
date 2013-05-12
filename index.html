@@ -9,9 +9,7 @@
   <meta name="author" content="Zane Zheng">
 
   
-  <meta name="description" content="第一章，第二章，是在阅读过若干rails书籍和文献之后，再仔细阅读，被称为呆丸章 第三章 3.1 Appication Setup 此节介绍使用Guthub.com, 基本的git命令，输入无虞。
-继而介绍Gemfile文件，此文件是定义相关gem包的地方。
-数据库的配置文件， &hellip;">
+  <meta name="description" content="rails 3 in action 2013 旧时王谢堂前卷，今读修补增添拾 第4章 OH CRUD! 使用当时最新版本，不降低或指定版本 4.1 Viewing projects 4.1.1 Writhing a feature 新建文件 feature/viewing_projects. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +64,353 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/12/rails-3-in-action-04-oh-crud/">Rails 3 in Action 04 Oh CRUD</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-12T21:57:00+08:00" pubdate data-updated="true">May 12<span>th</span>, 2013</time>
+        
+         | <a href="/blog/2013/05/12/rails-3-in-action-04-oh-crud/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>rails 3 in action 2013 旧时王谢堂前卷，今读修补增添拾 第4章 OH CRUD!</h1>
+
+<p><strong>使用当时最新版本，不降低或指定版本</strong></p>
+
+<h2>4.1 Viewing projects</h2>
+
+<h3>4.1.1 Writhing a feature</h3>
+
+<ol>
+<li>新建文件 feature/viewing_projects.features</li>
+<li><p>运行</p>
+
+<pre><code> bundle install --binstubs
+
+ #编辑 features/viewing_projects.feature
+
+ Feature: Viewing projects
+     In order to assign tickets to a project
+     As a user
+     I want to be able to see a list of available projects
+
+
+     Scenario: Listing all projects
+         Given there is a project called "TextMate 2"
+         And I am on the homepage
+         When I follow "TextMate 2"
+         Then I should be on the project page for "TextMate 2"
+
+
+ #运行
+ bin/cucumber features/viewing_projects.feature
+</code></pre>
+
+<p>防止版本变动，使用bin/cucumber 指定bundle下面的版本</p></li>
+</ol>
+
+
+<h3>4.1.2 TheFactoryGril</h3>
+
+<ol>
+<li><p>添加到Gimfile的</p>
+
+<pre><code> :testgroup :development
+ gem 'factory_gril_rails'  #与书中不同
+</code></pre></li>
+<li><p>创建</p>
+
+<pre><code> features/step_definitions/project_steps.rb
+</code></pre></li>
+<li><p>新建目录及文件，这里函数名改变了，FactoryGril函数寻找 :project factory, 并根据函数内数据生成一个新的object，新建factorires在项目根目录下，这对 RSpec 和 Cucumber 都公平。如下可运行：</p>
+
+<pre><code> factories/project_factory.rb
+ FactoryGirl.define do
+   factory :project do
+     name "Ticketee"
+   end
+  end
+
+ rm features/support/factories.rb #自动加载文件
+</code></pre></li>
+</ol>
+
+
+<h3>4.1.3 Adding a link to a project</h3>
+
+<ol>
+<li><p>添加内容到 app/view/projects/index.html.erb</p>
+
+<p> <h2>Projects</h2>
+ <ul></p>
+
+<pre><code> &lt;% @projects.each do |project| %&gt;
+ &lt;li&gt;&lt;%= link_to project.name, project %&gt;&lt;/li&gt;
+ &lt;% end %&gt;
+</code></pre>
+
+<p> </ul></p></li>
+<li><p>根据提示，缺少 @project variable 新建并编辑文件</p>
+
+<pre><code> app/controllers/projects_controller.rb
+
+ def index
+     @projects = Project.all
+ end
+</code></pre></li>
+<li><p>顺利通过，进行git版本管理操作</p>
+
+<pre><code> git add .
+ git commit -m "Added the ability to view a list of all projects"
+ git push
+</code></pre></li>
+</ol>
+
+
+<h2>4.2 Editing Projects</h2>
+
+<p>CRUD 第三个 Updateing，它类似 creating 和 reading ,</p>
+
+<ol>
+<li>creating 有 new 和 create</li>
+<li>reading 有 index 和 show</li>
+<li>updateing 有 edit 和 update</li>
+</ol>
+
+
+<h3>4.2.1 The edit action</h3>
+
+<ol>
+<li><p>features/editing_projects.feature</p>
+
+<pre><code> Scenario: Updating a project
+     Given there is a project called "TextMate 2"
+     And I am on the homepage
+     When I follow "TextMate 2"
+     And I follow "Edit Project"
+     And I fill in "Name" with "TextMate 2 beta"
+     And I press "Update Project"
+     Then I should see "Project has been updated."
+     Then I should be on the project page for "TextMate 2 beta"
+</code></pre></li>
+<li><p>app/views/projects/show.html.erb 此文件生效因为有resources :projects line in config/routes.rb.</p>
+
+<pre><code> &lt;%= link_to "Edit Project", edit_project_path(@project) %&gt;
+</code></pre></li>
+<li><p>app/controllers/projects_controller.rb</p>
+
+<pre><code> def edit
+   @project = Project.find(params[:id])
+ end
+</code></pre></li>
+<li><p>app/views/projects/edit.html.erb</p>
+
+<pre><code> &lt;h2&gt;Edit project&lt;/h2&gt;
+  &lt;%= render "form" %&gt;
+</code></pre></li>
+</ol>
+
+
+<h3>4.2.2 The update action</h3>
+
+<ol>
+<li><p>app/controllers/projects_controller.rb</p>
+
+<pre><code> def update
+     @project = Project.find(params[:id])
+     @project.update_attributes(params[:project])
+     flash[:notice] = "Project has been updated."
+     redirect_to @project
+ end
+</code></pre>
+
+<p>update_attributes新方法</p></li>
+<li><p>重构 features/editing_projects.feature</p>
+
+<pre><code> Feature: Editing Projects
+     In order to update project information
+     As a user
+     I want to be able to do that through an interface
+
+
+ Background:
+     Given there is a project called "TextMate 2"
+     And I am on the homepage
+     When I follow "TextMate 2"
+     And I follow "Edit Project"
+
+
+ Scenario: Updating a project
+     And I fill in "Name" with "TextMate 2 beta"
+     And I press "Update Project"
+     Then I should see "Project has been updated."
+     Then I should be on the project page for "TextMate 2 beta"
+
+ Scenario: Updating a project with invalid attributes is bad
+    And I fill in "Name" with ""
+    And I press "Update Project"
+    Then I should see "Project has not been updated."
+</code></pre></li>
+<li><p>app/controllers/projects_controller.rb</p>
+
+<pre><code> def update
+   @project = Project.find(params[:id])
+   if @project.update_attributes(params[:project])
+     flash[:notice] = "Project has been updated."
+     redirect_to @project
+   else
+     flash[:alert] = "Project has not been updated."
+     render :action =&gt; "edit"
+   end
+ end
+
+ git add .
+ git commit -m "Added updating projects functionality"
+ git push
+</code></pre></li>
+</ol>
+
+
+<h2>4.3 Deleting projects</h2>
+
+<h3>4.3.1 Writing a feature</h3>
+
+<ol>
+<li><p>点击删除按钮的时候会弹出一个提示 features/deleting_projects.feature</p>
+
+<pre><code> Feature: Deleting projects
+     In order to remove needless projects
+     As a project manager
+     I want to make them disappear
+
+
+ Scenario: Deleting a project
+     Given there is a project called "TextMate 2"
+     And I am on the homepage
+     When I follow "TextMate 2"
+     And I follow "Delete Project"
+     Then I should see "Project has been deleted."
+     Then I should not see "TextMate 2"
+</code></pre></li>
+</ol>
+
+
+<h3>4.3.2 Adding a destroy action</h3>
+
+<ol>
+<li><p>app/views/projects/show.html.erb</p>
+
+<pre><code> &lt;%= link_to "Delete Project", @project, :method =&gt; :delete,
+                 :confirm =&gt; "Are you sure you want to delete this project?" %&gt;
+</code></pre></li>
+<li><p>method 方法，告诉Rails使用何种http方法，如果所有请求都用get，那么任何人都可以发送delete了</p></li>
+<li><p>confirm 方法，生成一个提示，使用javascript，Capybara不支持JS,但Rails内部有相应的fallback功能。</p></li>
+<li><p>app/controllers/projects_controller.rb</p>
+
+<pre><code>  def destroy
+    @project = Project.find(params[:id])
+    @project.destroy
+    flash[:notice] = "Project has been deleted."
+    redirect_to projects_path
+  end
+
+  git add .
+  git commit -m "Implemented delete functionality for projects"
+  git push
+</code></pre></li>
+</ol>
+
+
+<h3>4.3.3 Looking for what isn’t there</h3>
+
+<ol>
+<li><p>production environment</p>
+
+<pre><code>rake db:migrate RAILS_ENV=production
+rails server -e production
+</code></pre></li>
+<li><p>写一个RSpc controller test 胜过 一个Cumumber feature，因为浏览一个不存在的东西是用户能够做的，而不是他们应该做的。 viewing projects that aren’t there is something a users can do, but not something they should do.</p>
+
+<pre><code> spec/controllers/projects_controller_spec.rb
+
+ require 'spec_helper'
+ describe ProjectsController do
+
+     it "displays an error for a missing project" do
+       get :show, :id =&gt; "not-here"
+       response.should redirect_to(projects_path)
+       message = "The project you were looking for could not be found."
+       flash[:alert].should eql(message)
+
+ end
+</code></pre></li>
+<li>spec/spec_help.rb 负责设置测试环境，包括Rails环境，和 Rails-associated RSpec helpers 他们在 spec/support 目录或子目录下。</li>
+<li><p>app/controllers/projects_controller.rb</p>
+
+<pre><code>  private
+    def find_project
+      @project = Project.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+      flash[:alert] = "The project you were looking" +
+                      " for could not be found."
+      redirect_to projects_path
+    end
+</code></pre></li>
+<li><p>为了在所有方法之前调用<em>私有方法</em> 使用before_filter方法。 类似的还有 :except :only.</p>
+
+<pre><code>  before_filter :find_project, :only =&gt; [:show,
+                                         :edit,
+                                         :update,
+                                         :destroy]
+</code></pre></li>
+<li><p>before_filter 调用 find_project 方法，设置 @project 变量，这就意味着，可以删除所有的</p>
+
+<pre><code>  @project = Project.find(params[:id])
+</code></pre></li>
+<li><p>运行</p>
+
+<pre><code>  bin/rspec spec/controllers/projects _controller_spec.rb
+  rake cucumber:ok
+
+  git add .
+  git commit -m "Users should be redirected back to the projects page
+                  if they try going to a project that doesn't exist."
+  git push
+</code></pre></li>
+</ol>
+
+
+<p>如果模版等同于action，控制器中的action就没有存在的必要了。</p>
+
+<p>Controller actions don’t need to exist in the controllers if there are templates corresponding to those actions, which you have for these actions.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -388,6 +733,10 @@ ruby 1.9.2
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/05/12/rails-3-in-action-04-oh-crud/">rails 3 in action 04 oh CRUD</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/04/28/rails-3-in-action-sui-ji-003/">Rails 3 in Action 随记003</a>
